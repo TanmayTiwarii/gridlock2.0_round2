@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ARTIFACTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Artifacts")
+ARTIFACTS_DIR = os.path.join(os.path.dirname(__file__), "Artifacts")
 
 @app.on_event("startup")
 def startup_event():
