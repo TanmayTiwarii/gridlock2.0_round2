@@ -1,0 +1,8 @@
+{
+    "rows_processed": 298450,
+    "hotspot_cells": 7816,
+    "archetypes": 6,
+    "forecast_rows": 23752,
+    "forecast_correlation": 0.46466112742238647,
+    "embedding_backend": "sentence-transformers/all-MiniLM-L6-v2 (cuda)"
+}
