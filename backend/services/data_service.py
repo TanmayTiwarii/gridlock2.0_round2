@@ -74,11 +74,10 @@ class DataService:
                 faiss.normalize_L2(embeddings)
                 self.faiss_index.add(embeddings)
                 
-                # Load SentenceTransformer model
-                # Doing it lazily or at init. Loading at init so search is fast.
-                self.model = SentenceTransformer('all-MiniLM-L6-v2')
+                # We will lazily load SentenceTransformer model in semantic_search()
+                # to save memory during server startup.
             except Exception as e:
-                print(f"Error loading FAISS or model: {e}")
+                print(f"Error loading FAISS: {e}")
 
         print("Backend datasets loaded.")
 
@@ -111,8 +110,13 @@ class DataService:
         }
 
     def semantic_search(self, query: str, top_k: int = 10):
-        if not self.model or not self.faiss_index or self.semantic_index_df is None:
+        if not self.faiss_index or self.semantic_index_df is None:
             return []
+            
+        if self.model is None:
+            print("Lazy loading SentenceTransformer model to save memory...")
+            from sentence_transformers import SentenceTransformer
+            self.model = SentenceTransformer('all-MiniLM-L6-v2')
             
         query_emb = self.model.encode([query])
         faiss.normalize_L2(query_emb)
