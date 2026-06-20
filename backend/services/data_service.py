@@ -28,7 +28,7 @@ class DataService:
         path = os.path.join(self.artifacts_dir, filename)
         if os.path.exists(path):
             df = pd.read_csv(path)
-            return df.where(pd.notnull(df), None)
+            return df.astype(object).where(pd.notnull(df), None)
         return None
 
     def _load_data(self):
