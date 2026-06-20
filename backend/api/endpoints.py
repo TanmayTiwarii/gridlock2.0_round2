@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query
-import services.data_service as ds
+import backend.services.data_service as ds
 import json
 
 router = APIRouter()

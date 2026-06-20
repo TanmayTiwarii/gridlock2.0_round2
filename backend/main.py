@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-from services.data_service import DataService
-import services.data_service as ds
-from api import endpoints
+from backend.services.data_service import DataService
+import backend.services.data_service as ds
+from backend.api import endpoints
 
 app = FastAPI(title="Parking Operational Intelligence Platform API")
 
