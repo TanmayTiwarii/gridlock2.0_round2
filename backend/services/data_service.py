@@ -4,7 +4,6 @@ import json
 import numpy as np
 # pyrefly: ignore [missing-import]
 import faiss
-from sentence_transformers import SentenceTransformer
 
 class DataService:
     def __init__(self, artifacts_dir: str):
