@@ -4,6 +4,7 @@ import ReactECharts from 'echarts-for-react';
 
 interface GraphNode {
   spatial_cell: string;
+  display_label?: string;
   archetype_name: string;
   cis: number;
   pagerank: number;
@@ -76,7 +77,7 @@ export default function NetworkIntelligence() {
         layout: 'force',
         data: topNodes.map(n => ({
           id: n.spatial_cell,
-          name: n.spatial_cell,
+          name: n.display_label || n.spatial_cell,
           symbolSize: Math.max(5, (n.cis / 100) * 20),
           category: n.archetype_name,
           itemStyle: {

@@ -4,6 +4,7 @@ import { Search, Filter } from 'lucide-react';
 
 interface Hotspot {
   spatial_cell: string;
+  display_label?: string;
   archetype_name: string;
   lifecycle_state: string;
   mean_poi: number;
@@ -46,7 +47,8 @@ export default function HotspotExplorer() {
   const trends = Array.from(new Set(hotspots.map(h => h.lifecycle_state)));
 
   const filteredHotspots = hotspots.filter(h => {
-    const matchesSearch = h.spatial_cell.toLowerCase().includes(search.toLowerCase());
+    const label = h.display_label || h.spatial_cell;
+    const matchesSearch = label.toLowerCase().includes(search.toLowerCase());
     const matchesArch = archetypeFilter ? h.archetype_name === archetypeFilter : true;
     const matchesTrend = trendFilter ? h.lifecycle_state === trendFilter : true;
     return matchesSearch && matchesArch && matchesTrend;
@@ -63,7 +65,7 @@ export default function HotspotExplorer() {
             <Search className="w-5 h-5 absolute left-3 top-2.5 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Search by Cell ID..." 
+              placeholder="Search by Location..." 
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -98,7 +100,7 @@ export default function HotspotExplorer() {
           <table className="w-full text-left text-sm whitespace-nowrap text-slate-600">
             <thead className="bg-slate-50 text-slate-700 uppercase font-semibold">
               <tr>
-                <th className="px-6 py-4">Cell ID</th>
+                <th className="px-6 py-4">Location</th>
                 <th className="px-6 py-4">Archetype</th>
                 <th className="px-6 py-4">Priority</th>
                 <th className="px-6 py-4">POI</th>
@@ -110,7 +112,7 @@ export default function HotspotExplorer() {
             <tbody className="divide-y divide-slate-200">
               {filteredHotspots.slice(0, 50).map((h, i) => (
                 <tr key={i} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-3 font-medium text-slate-900">{h.spatial_cell}</td>
+                  <td className="px-6 py-3 font-medium text-slate-900">{h.display_label || h.spatial_cell}</td>
                   <td className="px-6 py-3">
                     <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full text-xs font-medium">
                       {h.archetype_name}

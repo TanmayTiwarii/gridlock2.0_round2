@@ -69,28 +69,69 @@ class DataService:
                 return f.read()
         return "{}"
         
+    def _get_label_mapping(self):
+        # Create a mapping from spatial_cell to display_label
+        path = os.path.join(self.artifacts_dir, 'hotspot_master_named.csv')
+        mapping = {}
+        if os.path.exists(path):
+            df = pd.read_csv(path, usecols=['spatial_cell', 'display_label'])
+            mapping = dict(zip(df['spatial_cell'], df['display_label']))
+        return mapping
+
     def get_hotspot_master(self):
-        return self._load_csv_to_json_str('hotspot_master.csv')
+        return self._load_csv_to_json_str('hotspot_master_named.csv')
 
     def get_geojson(self):
         geojson_path = os.path.join(self.artifacts_dir, 'hotspots.geojson')
         if os.path.exists(geojson_path):
             with open(geojson_path, 'r', encoding='utf-8') as f:
-                return f.read()
+                geo_data = json.loads(f.read())
+            
+            mapping = self._get_label_mapping()
+            for feature in geo_data.get('features', []):
+                cell_id = feature['properties'].get('spatial_cell')
+                if cell_id in mapping:
+                    feature['properties']['display_label'] = mapping[cell_id]
+            return json.dumps(geo_data)
         return "{}"
 
     def get_forecast_data(self):
-        preds = self._load_csv_to_json_str('valid_predictions.csv')
-        ts = self._load_csv_to_json_str('hotspot_timeseries.csv')
-        return f'{{"predictions": {preds}, "timeseries": {ts}}}'
+        mapping = self._get_label_mapping()
+        
+        preds_path = os.path.join(self.artifacts_dir, 'valid_predictions.csv')
+        if os.path.exists(preds_path):
+            preds_df = pd.read_csv(preds_path)
+            preds_df['display_label'] = preds_df['spatial_cell'].map(mapping).fillna(preds_df['spatial_cell'])
+            preds_json = preds_df.to_json(orient='records')
+        else:
+            preds_json = "[]"
+            
+        ts_path = os.path.join(self.artifacts_dir, 'hotspot_timeseries.csv')
+        if os.path.exists(ts_path):
+            ts_df = pd.read_csv(ts_path)
+            ts_df['display_label'] = ts_df['spatial_cell'].map(mapping).fillna(ts_df['spatial_cell'])
+            ts_json = ts_df.to_json(orient='records')
+        else:
+            ts_json = "[]"
+            
+        return f'{{"predictions": {preds_json}, "timeseries": {ts_json}}}'
 
     def get_archetypes(self):
         return self._load_csv_to_json_str('archetype_profiles.csv')
 
     def get_network_graph(self):
-        nodes = self._load_csv_to_json_str('graph_nodes.csv')
+        mapping = self._get_label_mapping()
+        
+        nodes_path = os.path.join(self.artifacts_dir, 'graph_nodes.csv')
+        if os.path.exists(nodes_path):
+            nodes_df = pd.read_csv(nodes_path)
+            nodes_df['display_label'] = nodes_df['spatial_cell'].map(mapping).fillna(nodes_df['spatial_cell'])
+            nodes_json = nodes_df.to_json(orient='records')
+        else:
+            nodes_json = "[]"
+            
         edges = self._load_csv_to_json_str('graph_edges.csv')
-        return f'{{"nodes": {nodes}, "edges": {edges}}}'
+        return f'{{"nodes": {nodes_json}, "edges": {edges}}}'
 
     def semantic_search(self, query: str, top_k: int = 10):
         if not self.faiss_index or self.semantic_index_data is None:
@@ -106,11 +147,13 @@ class DataService:
         
         distances, indices = self.faiss_index.search(query_emb, k=top_k)
         
+        mapping = self._get_label_mapping()
         results = []
         for i, idx in enumerate(indices[0]):
             if idx != -1 and idx < len(self.semantic_index_data):
                 row = self.semantic_index_data[idx].copy()
                 row["similarity_score"] = float(distances[0][i])
+                row["display_label"] = mapping.get(row.get("spatial_cell"), row.get("spatial_cell"))
                 results.append(row)
                 
         return results

@@ -59,3 +59,7 @@ def search(query: str = Query(..., min_length=1), top_k: int = Query(10, gt=0, l
     
     results = service.semantic_search(query, top_k)
     return {"results": results}
+
+@router.get("/health")
+def health_check():
+    return {"status": "ok"}

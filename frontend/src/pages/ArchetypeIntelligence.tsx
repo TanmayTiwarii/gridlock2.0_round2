@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { ClusteredLayer } from '../components/ClusteredLayer';
 
 interface Archetype {
   archetype_name: string;
@@ -74,7 +75,7 @@ export default function ArchetypeIntelligence() {
           // Filter geojson for this archetype only
           const filteredGeo = {
             ...geoData,
-            features: geoData?.features.filter((f: any) => f.properties.archetype_name === arch.archetype_name)
+            features: geoData?.features.filter((f: any) => (f.properties.archetype_name || f.properties.archetype) === arch.archetype_name)
           };
 
           return (
@@ -128,13 +129,9 @@ export default function ArchetypeIntelligence() {
                 {filteredGeo && filteredGeo.features.length > 0 && (
                   <MapContainer preferCanvas={true} center={[12.9716, 77.5946]} zoom={10} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <GeoJSON 
-                      data={filteredGeo} 
-                      style={{
-                        fillColor: '#8b5cf6',
-                        weight: 0,
-                        fillOpacity: 0.8
-                      }} 
+                    <ClusteredLayer 
+                      geoData={filteredGeo} 
+                      styleFn={() => ({ fillColor: '#8b5cf6', weight: 0, fillOpacity: 0.8 })}
                     />
                   </MapContainer>
                 )}

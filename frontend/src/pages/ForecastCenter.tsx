@@ -7,6 +7,7 @@ import {
 
 interface ForecastData {
   spatial_cell: string;
+  display_label?: string;
   actual_poi: number;
   predicted_poi: number;
   absolute_error: number;
@@ -120,8 +121,8 @@ export default function ForecastCenter() {
           <table className="w-full text-left text-sm whitespace-nowrap text-slate-600">
             <thead className="bg-slate-50 text-slate-700 uppercase font-semibold">
               <tr>
+                <th className="px-6 py-4">Location</th>
                 <th className="px-6 py-4">Datetime</th>
-                <th className="px-6 py-4">Cell ID</th>
                 <th className="px-6 py-4">Archetype</th>
                 <th className="px-6 py-4">Predicted POI</th>
                 <th className="px-6 py-4">Risk Prob</th>
@@ -130,8 +131,8 @@ export default function ForecastCenter() {
             <tbody className="divide-y divide-slate-200">
               {highRisk.map((h, i) => (
                 <tr key={i} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-3 font-medium text-slate-900">{h.display_label || h.spatial_cell}</td>
                   <td className="px-6 py-3">{h.datetime_key}</td>
-                  <td className="px-6 py-3 font-medium text-slate-900">{h.spatial_cell}</td>
                   <td className="px-6 py-3">{h.archetype_name}</td>
                   <td className="px-6 py-3 text-red-600 font-bold">{h.predicted_poi.toFixed(2)}</td>
                   <td className="px-6 py-3">{(h.pred_high_risk_prob * 100).toFixed(1)}%</td>

@@ -4,6 +4,7 @@ import { Search, Sparkles, ChevronRight } from 'lucide-react';
 
 interface SearchResult {
   spatial_cell: string;
+  display_label?: string;
   archetype_name: string;
   lifecycle_state: string;
   hotspot_text: string;
@@ -117,7 +118,9 @@ export default function SemanticSearch() {
                   {/* Right Column: Details */}
                   <div className="flex-1 space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h4 className="text-lg font-bold text-slate-800">{res.spatial_cell}</h4>
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-800">{res.display_label || res.spatial_cell}</h4>
+                      </div>
                       <div className="flex gap-2">
                         <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-full">
                           {res.archetype_name}

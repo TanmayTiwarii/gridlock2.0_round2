@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { MapContainer, TileLayer, GeoJSON, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, LayersControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { ClusteredLayer } from '../components/ClusteredLayer';
 
 export default function GISOperationsMap() {
   const [geoData, setGeoData] = useState<any>(null);
@@ -53,7 +54,7 @@ export default function GISOperationsMap() {
 
   // Style functions for each layer
   const priorityStyle = (feature: any) => ({
-    fillColor: getPriorityColor(feature.properties.final_priority_score),
+    fillColor: getPriorityColor(feature.properties.final_priority_score || feature.properties.priority),
     weight: 1,
     opacity: 1,
     color: 'white',
@@ -71,7 +72,7 @@ export default function GISOperationsMap() {
   });
 
   const archetypeStyle = (feature: any) => ({
-    fillColor: getArchetypeColor(feature.properties.archetype_name),
+    fillColor: getArchetypeColor(feature.properties.archetype_name || feature.properties.archetype),
     weight: 1,
     opacity: 1,
     color: 'white',
@@ -84,20 +85,20 @@ export default function GISOperationsMap() {
     weight: 1,
     opacity: 1,
     color: 'white',
-    fillOpacity: feature.properties.pred_high_risk_prob
+    fillOpacity: Math.max(0.2, feature.properties.pred_high_risk_prob || 0)
   });
 
   const onEachFeature = (feature: any, layer: any) => {
     const props = feature.properties;
     layer.bindPopup(`
       <div class="p-1">
-        <strong class="text-sm block mb-1">Cell ID: ${props.spatial_cell}</strong>
-        <p class="text-xs mb-1"><b>Archetype:</b> ${props.archetype_name}</p>
-        <p class="text-xs mb-1"><b>Priority:</b> ${props.final_priority_score?.toFixed(2)}</p>
-        <p class="text-xs mb-1"><b>POI:</b> ${props.mean_poi?.toFixed(2)}</p>
-        <p class="text-xs mb-1"><b>CIS:</b> ${props.cis?.toFixed(2)}</p>
-        <p class="text-xs mb-1"><b>Forecast Risk:</b> ${(props.pred_high_risk_prob * 100).toFixed(1)}%</p>
-        <p class="text-xs mb-1"><b>Trend:</b> ${props.lifecycle_state}</p>
+        <strong class="text-sm block mb-1">Location: ${props.display_label || props.spatial_cell}</strong>
+        <p class="text-xs mb-1"><b>Archetype:</b> ${props.archetype_name || props.archetype}</p>
+        <p class="text-xs mb-1"><b>Priority:</b> ${(props.final_priority_score || props.priority)?.toFixed(2)}</p>
+        <p class="text-xs mb-1"><b>POI:</b> ${(props.mean_poi || 0)?.toFixed(2)}</p>
+        <p class="text-xs mb-1"><b>CIS:</b> ${(props.cis || 0)?.toFixed(2)}</p>
+        <p class="text-xs mb-1"><b>Forecast Risk:</b> ${((props.pred_high_risk_prob || 0) * 100).toFixed(1)}%</p>
+        <p class="text-xs mb-1"><b>Trend:</b> ${props.lifecycle_state || props.lifecycle}</p>
         <p class="text-xs mt-2 text-indigo-600 font-medium"><b>Action:</b> ${props.hotspot_text?.split('Recommended Action: ')[1] || 'Monitor'}</p>
       </div>
     `);
@@ -111,16 +112,16 @@ export default function GISOperationsMap() {
           <MapContainer preferCanvas={true} center={[12.9716, 77.5946]} zoom={11} style={{ height: '100%', width: '100%' }}>
             <LayersControl position="topright">
               <LayersControl.BaseLayer checked name="Priority Layer">
-                <GeoJSON data={geoData} style={priorityStyle} onEachFeature={onEachFeature} />
+                <ClusteredLayer geoData={geoData} styleFn={priorityStyle} onEachFeature={onEachFeature} />
               </LayersControl.BaseLayer>
               <LayersControl.BaseLayer name="CIS Layer">
-                <GeoJSON data={geoData} style={cisStyle} onEachFeature={onEachFeature} />
+                <ClusteredLayer geoData={geoData} styleFn={cisStyle} onEachFeature={onEachFeature} />
               </LayersControl.BaseLayer>
               <LayersControl.BaseLayer name="Archetype Layer">
-                <GeoJSON data={geoData} style={archetypeStyle} onEachFeature={onEachFeature} />
+                <ClusteredLayer geoData={geoData} styleFn={archetypeStyle} onEachFeature={onEachFeature} />
               </LayersControl.BaseLayer>
               <LayersControl.BaseLayer name="Forecast Layer (Risk)">
-                <GeoJSON data={geoData} style={forecastStyle} onEachFeature={onEachFeature} />
+                <ClusteredLayer geoData={geoData} styleFn={forecastStyle} onEachFeature={onEachFeature} />
               </LayersControl.BaseLayer>
             </LayersControl>
             <TileLayer
