@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Hotspot {
   spatial_cell: string;
@@ -20,6 +20,13 @@ export default function HotspotExplorer() {
   const [search, setSearch] = useState('');
   const [archetypeFilter, setArchetypeFilter] = useState('');
   const [trendFilter, setTrendFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [jumpPage, setJumpPage] = useState('');
+  const itemsPerPage = 50;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, archetypeFilter, trendFilter]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,6 +60,26 @@ export default function HotspotExplorer() {
     const matchesTrend = trendFilter ? h.lifecycle_state === trendFilter : true;
     return matchesSearch && matchesArch && matchesTrend;
   });
+
+  const totalPages = Math.ceil(filteredHotspots.length / itemsPerPage);
+  const currentItems = filteredHotspots.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleJumpPage = (e: React.FormEvent) => {
+    e.preventDefault();
+    const page = parseInt(jumpPage, 10);
+    if (!isNaN(page) && page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+    setJumpPage('');
+  };
+
+  const getPageNumbers = () => {
+    const pages = [];
+    for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-10">
@@ -110,7 +137,7 @@ export default function HotspotExplorer() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {filteredHotspots.slice(0, 50).map((h, i) => (
+              {currentItems.map((h, i) => (
                 <tr key={i} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-3 font-medium text-slate-900">{h.display_label || h.spatial_cell}</td>
                   <td className="px-6 py-3">
@@ -137,9 +164,59 @@ export default function HotspotExplorer() {
               ))}
             </tbody>
           </table>
-          {filteredHotspots.length > 50 && (
-            <div className="p-4 text-center text-sm text-slate-500 bg-slate-50 border-t border-slate-200">
-              Showing top 50 of {filteredHotspots.length} results. Please use filters to narrow down.
+          {totalPages > 1 && (
+            <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 border-t border-slate-200">
+              <span className="text-sm text-slate-500">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredHotspots.length)} of {filteredHotspots.length} entries
+              </span>
+              <div className="flex gap-2 items-center">
+                <form onSubmit={handleJumpPage} className="flex items-center gap-2 mr-4">
+                  <span className="text-sm text-slate-500">Go to:</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max={totalPages}
+                    value={jumpPage}
+                    onChange={(e) => setJumpPage(e.target.value)}
+                    placeholder="Page"
+                    className="w-16 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                  <button type="submit" className="hidden">Go</button>
+                </form>
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-opacity"
+                >
+                  <ChevronLeft className="w-5 h-5 text-slate-600" />
+                </button>
+                <div className="flex gap-1 mx-1">
+                  {getPageNumbers().map((p, idx) => (
+                    p >= 1 && p <= totalPages ? (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                          currentPage === p 
+                            ? 'bg-indigo-600 text-white border border-indigo-600 shadow-sm' 
+                            : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ) : (
+                      <div key={`empty-${idx}`} className="w-8 h-8" />
+                    )
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1.5 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 transition-opacity"
+                >
+                  <ChevronRight className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
             </div>
           )}
           {filteredHotspots.length === 0 && (
