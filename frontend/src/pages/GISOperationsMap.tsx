@@ -95,9 +95,6 @@ export default function GISOperationsMap() {
         <strong class="text-sm block mb-1">Location: ${props.display_label || props.spatial_cell}</strong>
         <p class="text-xs mb-1"><b>Archetype:</b> ${props.archetype_name || props.archetype}</p>
         <p class="text-xs mb-1"><b>Priority:</b> ${(props.final_priority_score || props.priority)?.toFixed(2)}</p>
-        <p class="text-xs mb-1"><b>POI:</b> ${(props.mean_poi || 0)?.toFixed(2)}</p>
-        <p class="text-xs mb-1"><b>CIS:</b> ${(props.cis || 0)?.toFixed(2)}</p>
-        <p class="text-xs mb-1"><b>Forecast Risk:</b> ${((props.pred_high_risk_prob || 0) * 100).toFixed(1)}%</p>
         <p class="text-xs mb-1"><b>Trend:</b> ${props.lifecycle_state || props.lifecycle}</p>
         <p class="text-xs mt-2 text-indigo-600 font-medium"><b>Action:</b> ${props.hotspot_text?.split('Recommended Action: ')[1] || 'Monitor'}</p>
       </div>
